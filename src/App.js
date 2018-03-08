@@ -60,7 +60,7 @@ class App extends Component {
     markAsRead = () => {
         const newState = this.state.messages.map((message) => {
             if (message.selected === true)
-                return ({...message, read: true})
+                return ({...message, read: true, selected: false})
             return message
         })
 
@@ -70,7 +70,7 @@ class App extends Component {
     markAsUnRead = () => {
         const newState = this.state.messages.map((message) => {
             if (message.selected === true)
-                return ({...message, read: false})
+                return ({...message, read: false, selected: false})
             return message
         })
 
@@ -89,7 +89,7 @@ class App extends Component {
     handleApplyLabel = (selectedLabel) => {
         const newState = this.state.messages.map((message) => {
             if (message.selected === true && message.labels.indexOf(selectedLabel) === -1)
-                return ({...message, labels: message.labels.concat(selectedLabel)})
+                return ({...message, labels: message.labels.concat(selectedLabel), selected: false})
             return message
         })
 
@@ -103,6 +103,7 @@ class App extends Component {
                 const ino = message.labels.indexOf(selectedLabel)
                 if (ino !== -1)
                     message.labels.splice(ino, 1)
+                message.selected = false
             }
         })
 

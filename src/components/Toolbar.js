@@ -41,12 +41,10 @@ class Toolbar extends Component {
         else if (selectedCount > 0)
             return "fa-minus-square-o"
         else return "fa-square-o"
-
     }
 
-
     render() {
-        const {markAsRead, markAsUnRead, deleted, labels, removeLabels, messageCount} = this.props
+        const {toggleCompose, markAsRead, markAsUnRead, deleted, labels, removeLabels, messageCount} = this.props
         const bulkSelectStyle = this.handleButtonState()
         const disabled = bulkSelectStyle === "fa-square-o" ? true : false
 
@@ -59,6 +57,9 @@ class Toolbar extends Component {
                         </span>
                         unread messages
                     </p>
+                    <a class="btn btn-danger" onClick={toggleCompose}>
+                        <i className="fa fa-plus"></i>
+                    </a>
                     <Button className="btn btn-default"
                             onClick={this.toggleBulkSelect}>
                         <i className={`fa ${bulkSelectStyle}`}>

@@ -3,6 +3,9 @@ import './App.css';
 import MessageList from "./components/MessageList";
 import Toolbar from "./components/Toolbar";
 import ComposeMessage from "./components/ComposeMessage";
+import {connect} from "react-redux";
+import {bindActionCreators} from "redux";
+import fetchMessages from "./actions/fetchMessages";
 
 class App extends Component {
     state = {
@@ -10,93 +13,15 @@ class App extends Component {
         composeMessage: false
     }
 
-    async componentDidMount() {
-        const response = await fetch(`${process.env.REACT_APP_API_URL}/api/messages`)
-        const messages = await response.json()
-        console.log("messages is ", messages._embedded.messages)
-        this.setState({messages: messages._embedded.messages})
+    componentDidMount() {
+        this.props.fetchMessages()
     }
 
     labels = ['Apply Label', 'dev', 'personal', 'gschool']
     removeLabels = ['Remove Label', 'dev', 'personal', 'gschool']
 
-    toggleStarred = (messageId) => {
-        const newState = this.state.messages.map((message) => {
-            if (message.id === messageId) {
-                this.patchMessageServer([messageId], "star", {star: !message.starred})
-                return ({
-                    ...message,
-                    starred: !message.starred
-                })
-            }
-            return message
-        })
-        this.setState({messages: newState})
-    }
-
-    handleSelect = (messageId) => {
-        const newState = this.state.messages.map((message) => {
-            if (message.id === messageId) {
-                return ({
-                    ...message,
-                    selected: message.selected ? !message.selected : true
-                })
-            }
-            return message
-        })
-        this.setState({messages: newState})
-    }
-
     toggleCompose = () => {
         this.setState({composeMessage: !this.state.composeMessage})
-    }
-
-    bulkSelectOn = () => {
-        const newState = this.state.messages.map(message => {
-            return ({
-                ...message,
-                selected: true
-            })
-        })
-        this.setState({messages: newState})
-    }
-
-    bulkSelectOff = () => {
-        const newState = this.state.messages.map(message => {
-            return ({
-                ...message,
-                selected: false
-            })
-        })
-        this.setState({messages: newState})
-    }
-
-    markAsRead = () => {
-        const messageIds = []
-        const newState = this.state.messages.map((message) => {
-            if (message.selected === true) {
-                messageIds.push(message.id)
-                return ({...message, read: true, selected: false})
-            }
-            return message
-        })
-
-        this.patchMessageServer(messageIds, "read", {read: true})
-        this.setState({messages: newState})
-    }
-
-    markAsUnRead = () => {
-        const messageIds = []
-        const newState = this.state.messages.map((message) => {
-            if (message.selected === true) {
-                messageIds.push(message.id)
-                return ({...message, read: false, selected: false})
-            }
-            return message
-        })
-
-        this.patchMessageServer(messageIds, "read", {read: false})
-        this.setState({messages: newState})
     }
 
     async composeNewMessage(subject, message) {
@@ -121,74 +46,8 @@ class App extends Component {
         }
     }
 
-    async patchMessageServer(messageIds, command, action) {
-        const patchUrl = `${process.env.REACT_APP_API_URL}/api/messages`
-        const requestBody = {
-            messageIds,
-            command,
-            ...action
-        }
-
-        try {
-            await fetch(patchUrl, {
-                method: 'PATCH',
-                body: JSON.stringify(requestBody),
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json'
-                }
-            })
-        } catch (err) {
-            console.log(err)
-        }
-    }
-
-    deleted = () => {
-        const messageIds = []
-        const newState = this.state.messages.filter((message) => {
-            if (message.selected !== true) {
-                return true
-            }
-            messageIds.push(message.id)
-        })
-
-        this.patchMessageServer(messageIds, "delete", {})
-        this.setState({messages: newState})
-    }
-
-    handleApplyLabel = (selectedLabel) => {
-        const messageIds = []
-        const newState = this.state.messages.map((message) => {
-            if (message.selected === true && message.labels.indexOf(selectedLabel) === -1) {
-                messageIds.push(message.id)
-                return ({...message, labels: message.labels.concat(selectedLabel), selected: false})
-            }
-            return message
-        })
-
-        this.patchMessageServer(messageIds, "addLabel", {label: selectedLabel})
-        this.setState({messages: newState})
-    }
-
-    handleRemoveLabel = (selectedLabel) => {
-        const messageIds = []
-        const newState = Object.assign(this.state.messages)
-        newState.map((message) => {
-            if (message.selected === true) {
-                messageIds.push(message.id)
-                const ino = message.labels.indexOf(selectedLabel)
-                if (ino !== -1)
-                    message.labels.splice(ino, 1)
-                message.selected = false
-            }
-        })
-
-        this.patchMessageServer(messageIds, "removeLabel", {label: selectedLabel})
-        this.setState({messages: newState})
-    }
-
     messageCount = () => {
-        const count = this.state.messages.reduce((acc, message) => {
+        const count = this.props.messages.reduce((acc, message) => {
             if (message.read === false)
                 return acc + 1
             return acc
@@ -197,34 +56,35 @@ class App extends Component {
     }
 
     render() {
-        const {bulkSelect, messages, composeMessage} = this.state
+        const {bulkSelect, composeMessage} = this.state
+        const {messages} = this.props
         return (
             <div>
                 <header>
                     <h1 className="App-title">React Inbox</h1>
                 </header>
                 <Toolbar bulkSelect={bulkSelect}
-                         bulkSelectOn={this.bulkSelectOn}
-                         bulkSelectOff={this.bulkSelectOff}
-                         markAsRead={this.markAsRead}
-                         markAsUnRead={this.markAsUnRead}
-                         deleted={this.deleted}
                          labels={this.labels}
                          removeLabels={this.removeLabels}
-                         handleApplyLabel={this.handleApplyLabel}
-                         handleRemoveLabel={this.handleRemoveLabel}
                          messageCount={this.messageCount}
-                         toggleCompose={this.toggleCompose}
-                         messages={messages}/>
+                         toggleCompose={this.toggleCompose}/>
                 <ComposeMessage display={composeMessage}
                                 composeNewMessage={this.composeNewMessage}/>
-                <MessageList bulkSelect={bulkSelect}
-                             messages={messages}
-                             toggleStarred={this.toggleStarred}
-                             handleSelect={this.handleSelect}/>
+                <MessageList bulkSelect={bulkSelect}/>
             </div>
         )
     }
 }
 
-export default App;
+const mapStateToProps = state => {
+    return ({
+        messages: state.messages
+    })
+}
+
+const mapDispatchToProps = dispatch =>
+    bindActionCreators({
+        fetchMessages: fetchMessages
+    }, dispatch)
+
+export default connect(mapStateToProps, mapDispatchToProps)(App)

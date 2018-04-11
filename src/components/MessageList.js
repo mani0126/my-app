@@ -1,5 +1,8 @@
 import React, {Component} from 'react'
 import Message from "./message"
+import {bindActionCreators} from "redux";
+import {connect} from "react-redux";
+import {handleSelect, toggleStarred} from "../actions";
 
 class MessageList extends Component {
 
@@ -23,4 +26,14 @@ class MessageList extends Component {
     }
 }
 
-export default MessageList
+const mapStateToProps = state => ({
+    messages: state.messages
+})
+
+const mapDispatchToProps = dispatch =>
+    bindActionCreators({
+        toggleStarred: toggleStarred,
+        handleSelect: handleSelect
+    }, dispatch)
+
+export default connect(mapStateToProps, mapDispatchToProps)(MessageList)

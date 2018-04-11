@@ -1,5 +1,8 @@
 import React, {Component} from 'react'
 import {Button, Input} from 'react-materialize'
+import {applyLabel, bulkSelectOff, bulkSelectOn, deleted, markAsRead, markAsUnRead, removeLabel} from "../actions";
+import {bindActionCreators} from "redux";
+import {connect} from "react-redux";
 
 class Toolbar extends Component {
 
@@ -7,25 +10,34 @@ class Toolbar extends Component {
         bulkSelect: false
     }
 
+    getMessageIds = () => {
+        let messageIds = []
+        this.props.messages.map((message) => {
+            if (message.selected === true)
+                messageIds.push(message.id)
+        })
+        return messageIds
+    }
+
     toggleBulkSelect = () => {
         const {bulkSelect} = this.state
         this.setState({bulkSelect: !this.state.bulkSelect})
         if (bulkSelect === false)
-            this.props.bulkSelectOn()
+            this.props.bulkSelectOn(this.getMessageIds())
         else
-            this.props.bulkSelectOff()
+            this.props.bulkSelectOff(this.getMessageIds())
     }
 
     handleLabelChange = (e) => {
         console.log(this.state, e.target.value)
         if (e.target.value !== 'Apply Label')
-            this.props.handleApplyLabel(e.target.value)
+            this.props.applyLabel(e.target.value, this.getMessageIds())
     }
 
     handleRemoveLabel = (e) => {
         console.log(this.state, e.target.value)
         if (e.target.value !== 'Apply Label')
-            this.props.handleRemoveLabel(e.target.value)
+            this.props.removeLabel(e.target.value, this.getMessageIds())
     }
 
     handleButtonState = () => {
@@ -44,8 +56,10 @@ class Toolbar extends Component {
     }
 
     render() {
-        const {toggleCompose, markAsRead, markAsUnRead, deleted, labels, removeLabels, messageCount} = this.props
+        const {toggleCompose, labels, removeLabels, messageCount} = this.props
+        const {deleted, markAsRead, markAsUnRead} = this.props
         const bulkSelectStyle = this.handleButtonState()
+        const messageIds = this.getMessageIds()
         const disabled = bulkSelectStyle === "fa-square-o" ? true : false
 
         return (
@@ -57,7 +71,7 @@ class Toolbar extends Component {
                         </span>
                         unread messages
                     </p>
-                    <a class="btn btn-danger" onClick={toggleCompose}>
+                    <a className="btn btn-danger" onClick={toggleCompose}>
                         <i className="fa fa-plus"></i>
                     </a>
                     <Button className="btn btn-default"
@@ -65,10 +79,10 @@ class Toolbar extends Component {
                         <i className={`fa ${bulkSelectStyle}`}>
                         </i>
                     </Button>
-                    <Button className="btn btn-default" disabled={disabled} onClick={() => markAsRead()}>
+                    <Button className="btn btn-default" disabled={disabled} onClick={() => markAsRead(messageIds)}>
                         Mark As Read
                     </Button>
-                    <Button className="btn btn-default" disabled={disabled} onClick={() => markAsUnRead()}>
+                    <Button className="btn btn-default" disabled={disabled} onClick={() => markAsUnRead(messageIds)}>
                         Mark As UnRead
                     </Button>
                     <select className="form-control label-select" disabled={disabled} onChange={this.handleLabelChange}>
@@ -89,4 +103,20 @@ class Toolbar extends Component {
     }
 }
 
-export default Toolbar
+const mapStateToProps = state => {
+    return ({
+        messages: state.messages
+    })
+}
+
+const mapDispatchToProps = dispatch => bindActionCreators({
+    markAsRead: markAsRead,
+    markAsUnRead: markAsUnRead,
+    deleted: deleted,
+    bulkSelectOn: bulkSelectOn,
+    bulkSelectOff: bulkSelectOff,
+    applyLabel: applyLabel,
+    removeLabel: removeLabel
+}, dispatch)
+
+export default connect(mapStateToProps, mapDispatchToProps)(Toolbar)

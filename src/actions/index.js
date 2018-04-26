@@ -5,12 +5,15 @@ import {
     TOGGLESTARRED
 } from "../constants/actionTypes";
 
-export const toggleStarred = (messageId) => {
+export const toggleStarred = (messageId, starStatus) => {
+    const messageIds = [messageId]
     return (dispatch) => {
-        dispatch({
-            type: TOGGLESTARRED,
-            messageId: messageId
-        })
+        patchMessageServer(messageIds, "star", {star: !starStatus}).then(
+            dispatch({
+                type: TOGGLESTARRED,
+                messageId: messageId
+            })
+        )
     }
 }
 

@@ -9,16 +9,12 @@ import fetchMessages from "./actions/fetchMessages";
 
 class App extends Component {
     state = {
-        messages: [],
         composeMessage: false
     }
 
     componentDidMount() {
         this.props.fetchMessages()
     }
-
-    labels = ['Apply Label', 'dev', 'personal', 'gschool']
-    removeLabels = ['Remove Label', 'dev', 'personal', 'gschool']
 
     toggleCompose = () => {
         this.setState({composeMessage: !this.state.composeMessage})
@@ -46,31 +42,17 @@ class App extends Component {
         }
     }
 
-    messageCount = () => {
-        const count = this.props.messages.reduce((acc, message) => {
-            if (message.read === false)
-                return acc + 1
-            return acc
-        }, 0)
-        return count
-    }
-
     render() {
-        const {bulkSelect, composeMessage} = this.state
-        const {messages} = this.props
+        const {composeMessage} = this.state
         return (
             <div>
                 <header>
                     <h1 className="App-title">React Inbox</h1>
                 </header>
-                <Toolbar bulkSelect={bulkSelect}
-                         labels={this.labels}
-                         removeLabels={this.removeLabels}
-                         messageCount={this.messageCount}
-                         toggleCompose={this.toggleCompose}/>
+                <Toolbar toggleCompose={this.toggleCompose}/>
                 <ComposeMessage display={composeMessage}
                                 composeNewMessage={this.composeNewMessage}/>
-                <MessageList bulkSelect={bulkSelect}/>
+                <MessageList/>
             </div>
         )
     }

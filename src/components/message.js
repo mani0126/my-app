@@ -1,10 +1,13 @@
 import React, {Component} from 'react'
+import {handleSelect, toggleStarred} from "../actions";
+import {connect} from "react-redux";
+import {bindActionCreators} from "redux";
 
 class message extends Component {
 
     clickStar = () => {
         const {message, toggleStarred} = this.props
-        toggleStarred(message.id)
+        toggleStarred(message.id, message.starred)
     }
 
     displayLabel = (labels) => labels.map((label, index) =>
@@ -40,7 +43,12 @@ class message extends Component {
             </div>
         )
     }
-
 }
 
-export default message
+const mapDispatchToProps = dispatch =>
+    bindActionCreators({
+        toggleStarred: toggleStarred,
+        handleSelect: handleSelect
+    }, dispatch)
+
+export default connect(null, mapDispatchToProps)(message)

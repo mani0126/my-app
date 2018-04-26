@@ -10,6 +10,15 @@ class Toolbar extends Component {
         bulkSelect: false
     }
 
+    messageCount = () => {
+        const count = this.props.messages.reduce((acc, message) => {
+            if (message.read === false)
+                return acc + 1
+            return acc
+        }, 0)
+        return count
+    }
+
     getMessageIds = () => {
         let messageIds = []
         this.props.messages.map((message) => {
@@ -56,8 +65,11 @@ class Toolbar extends Component {
     }
 
     render() {
-        const {toggleCompose, labels, removeLabels, messageCount} = this.props
+        const {toggleCompose} = this.props
         const {deleted, markAsRead, markAsUnRead} = this.props
+        const labels = ['Apply Label', 'dev', 'personal', 'gschool']
+        const removeLabels = ['Remove Label', 'dev', 'personal', 'gschool']
+
         const bulkSelectStyle = this.handleButtonState()
         const messageIds = this.getMessageIds()
         const disabled = bulkSelectStyle === "fa-square-o" ? true : false
@@ -67,7 +79,7 @@ class Toolbar extends Component {
                 <div className="col-md-12">
                     <p className="pull-right">
                         <span className="badge badge">
-                        {messageCount()}
+                        {this.messageCount()}
                         </span>
                         unread messages
                     </p>
@@ -93,7 +105,7 @@ class Toolbar extends Component {
                     <select className="form-control label-select" disabled={disabled} onChange={this.handleRemoveLabel}>
                         {removeLabels.map((label, index) => <option key={index}>{label}</option>)}
                     </select>
-                    <Button className="btn btn-default" disabled={disabled} onClick={() => deleted()}>
+                    <Button className="btn btn-default" disabled={disabled} onClick={() => deleted(messageIds)}>
                         <i className="fa fa-trash-o">
                         </i>
                     </Button>
